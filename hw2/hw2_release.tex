@@ -8,6 +8,7 @@
 \usepackage[OT1]{fontenc}
 \usepackage[colorlinks,citecolor=blue,urlcolor=blue]{hyperref}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{subcaption}
 \usepackage{fullpage}
 \usepackage{amsmath}
@@ -179,7 +180,146 @@ times when we are likely to detect the planet.
 \newpage
 
 \begin{solution}
-	Your solution here.
+
+\section{Problem 1.}
+
+\subsection{Question 1.}
+
+\textbf{(a).} Let $x$ be fixed and $D$ be the (random) training dataset. Define $\hat f_D(x)$ as the predictor learned from $D$.
+\[
+\mathrm{MSE} \;=\; \mathbb{E}_{D,y\mid x}\!\left[(y-\hat f_D(x))^2\right].
+\]
+Add and subtract $f(x)$:
+\[
+y-\hat f_D(x) \;=\; (y-f(x)) + (f(x)-\hat f_D(x)).
+\]
+Thus,
+\begin{align*}
+\mathrm{MSE}
+&=\mathbb{E}_{D,y\mid x}\!\left[\big((y-f(x))+(f(x)-\hat f_D(x))\big)^2\right] \\
+&=\mathbb{E}_{D,y\mid x}\!\left[(y-f(x))^2\right]
++\mathbb{E}_{D,y\mid x}\!\left[(f(x)-\hat f_D(x))^2\right]
++2\,\mathbb{E}_{D,y\mid x}\!\left[(y-f(x))(f(x)-\hat f_D(x))\right] \\
+&=\mathbb{E}_{y\mid x}\!\left[(y-f(x))^2\right]
++\mathbb{E}_{D}\!\left[(f(x)-\hat f_D(x))^2\right]
++\underbrace{2\,\mathbb{E}_{D,y\mid x}\!\left[(y-f(x))(f(x)-\hat f_D(x))\right]}_{\text{third term}},
+\end{align*}
+where we used that $(y-f(x))^2$ depends only on $y\mid x$ and $(f(x)-\hat f_D(x))^2$ depends only on $D$.
+\\\\
+\textbf{(b). }Using $y=f(x)+\varepsilon$, we have $y-f(x)=\varepsilon$ and $\mathbb{E}[\varepsilon\mid x]=0$. Then by iterated expectation,
+\begin{align*}
+\mathbb{E}_{D,y\mid x}\!\left[(y-f(x))(f(x)-\hat f_D(x))\right]
+&=\mathbb{E}_{D}\!\left[(f(x)-\hat f_D(x))\,\mathbb{E}_{y\mid x}[\varepsilon\mid x]\right] \\
+&=\mathbb{E}_{D}\!\left[(f(x)-\hat f_D(x))\cdot 0\right] \;=\;0.
+\end{align*}
+Hence the third term is $0$.
+\\\\
+\textbf{(c).} Since $y-f(x)=\varepsilon$,
+\[
+\mathbb{E}_{y\mid x}\!\left[(y-f(x))^2\right]
+=\mathbb{E}[\varepsilon^2\mid x]
+=\mathrm{Var}(\varepsilon\mid x)+(\mathbb{E}[\varepsilon\mid x])^2
+=\sigma^2+0=\sigma^2.
+\]
+\\\\
+\textbf{(d). }Define $\bar f(x)=\mathbb{E}_D[\hat f_D(x)]$. Then
+\[
+f(x)-\hat f_D(x)=(f(x)-\bar f(x))+(\bar f(x)-\hat f_D(x)).
+\]
+Squaring and taking $\mathbb{E}_D$,
+\begin{align*}
+\mathbb{E}_D[(f(x)-\hat f_D(x))^2]
+&=(f(x)-\bar f(x))^2 + \mathbb{E}_D[(\bar f(x)-\hat f_D(x))^2]
++2(f(x)-\bar f(x))\,\mathbb{E}_D[\bar f(x)-\hat f_D(x)] \\
+&=(f(x)-\bar f(x))^2 + \mathbb{E}_D[(\bar f(x)-\hat f_D(x))^2],
+\end{align*}
+since $\mathbb{E}_D[\bar f(x)-\hat f_D(x)]=\bar f(x)-\mathbb{E}_D[\hat f_D(x)]=0$.
+
+\subsection{Question 2.}
+
+We use the provided linear basis
+\[
+\phi_1(t) = \begin{bmatrix} 1 \\ t \end{bmatrix}.
+\]
+We choose the following two additional basis functions:
+\[
+\phi_2(t) =
+\begin{bmatrix}
+1 \\
+t \\
+t^2 \\
+t^3
+\end{bmatrix},
+\qquad
+\phi_3(t) =
+\begin{bmatrix}
+1 \\
+\sin(1.1t) \\
+\cos(1.1t) \\
+\sin(2.2t) \\
+\cos(2.2t)
+\end{bmatrix}.
+\]
+For each basis, we trained logistic regression models of the form
+\[
+p(y=1 \mid t) = \sigma\!\left(w^\top \phi(t)\right),
+\]
+where $\sigma(z)=\frac{1}{1+e^{-z}}$, using gradient descent to minimize the negative log-likelihood. We used learning rate $\eta=0.001$, 1000 update steps, and averaged the gradient across data points at each step. Ten models were trained for each basis (one per mini-dataset).
+
+\subsection{Question 3.}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/basis1.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/basis2.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/basis3.png}
+\end{figure}
+Across the plots, the bias at a point $t$ is reflected by the vertical gap between the true function and the mean learned predictor, the variance is reflected by the spread of the individual learned curves around the mean. The linear basis $\phi_1$ exhibits high bias since it cannot capture periodic behavior, though the individual curves are relatively similar. The polynomial basis $\phi_2$ reduces bias by allowing more flexibility, but the individual curves vary more across datasets, indicating higher variance. The sinusoidal basis $\phi_3$ most closely matches the periodic structure of the true function and therefore has the lowest bias among the three. However, none of the bases match the true generating process exactly, so some residual bias remains in all cases.
+
+\subsection{Question 4.}
+
+If the dataset size $N$ increases, the variance of all three models decreases because the learned parameters become more stable across different samples of data. The bias, however, is primarily determined by the expressiveness of the basis and therefore does not substantially change with larger $N$. For the linear basis $\phi_1$, the model will continue to exhibit high bias since it cannot represent periodic structure, although its variance will shrink. For the polynomial basis $\phi_2$, variance will decrease noticeably with larger $N$, while the approximation bias remains moderate due to model misspecification. For the sinusoidal basis $\phi_3$, both variance decreases and bias is already relatively low, since its functional form is well aligned with the true periodic generating process.
+
+\subsection{Question 5.}
+
+For $t=0.1$, the first model predicts
+\[
+\hat p_1(0.1)=0.5654,
+\]
+and the variance of the predicted probabilities across the 10 models is
+\[
+\mathrm{Var}_{10}(0.1)=0.001323.
+\]
+The classification probability measures aleatoric uncertainty, since it reflects the model's estimated Bernoulli probability of observing the planet at that time.
+The variance across models measures epistemic uncertainty, capturing how sensitive predictions are to the particular training dataset.
+\\\\
+For $t=3.2$, the first model predicts
+\[
+\hat p_1(3.2)=0.5053,
+\]
+with variance
+\[
+\mathrm{Var}_{10}(3.2)=0.001350.
+\]
+At both time points the epistemic uncertainty is small, but the aleatoric uncertainty differs: when the predicted probability is close to $0.5$ (as at $t=3.2$), intrinsic classification uncertainty is higher than when the probability is farther from $0.5$.
+
+\subsection{Question 6.}
+
+The alternate telescope’s observations appear to follow a similar periodic pattern but may differ in amplitude, phase, or baseline detection probability, suggesting a systematic shift between instruments. This could indicate measurement bias or differing observational sensitivity, rather than a change in the underlying planetary process. An appropriate model would incorporate telescope-specific effects. Refitting the models on the combined data is reasonable if the alternate data provide additional coverage or reduce sampling noise. More data can reduce variance in parameter estimates and improve calibration of detection probabilities. However, if the telescopes have fundamentally different noise characteristics, simply pooling data without modeling instrument effects could introduce bias. Accounting for these differences explicitly would allow more accurate prediction of high-probability observation windows. This would help allocate telescope time more efficiently by targeting periods with consistently high predicted detection probability across instruments.
+
+\subsection{Question 7.}
+
+The 10-fold average classification errors are:
+\[
+\text{basis1: }0.4967,\qquad \text{basis2: }0.3000,\qquad \text{basis3: }0.2800.
+\]
+Hence \(\phi_3\) (basis3) performs best. This is because the true observation probability is periodic, and \(\phi_3\) includes sinusoidal features at the relevant frequency, yielding lower approximation bias than \(\phi_1\) and typically a better bias-variance tradeoff than the higher-degree polynomial basis \(\phi_2\).
+
 \end{solution}
 
 
@@ -265,7 +405,100 @@ These formulas are from the matrix cookbook linked here: \href{https://www.math.
 \newpage
 
 \begin{solution}
-	Your solution here.
+
+\section{Problem 2.}
+
+\subsection{Question 1.}
+
+Let $D=\{(x_i,y_i)\}_{i=1}^n$ with one-hot $y_i\in\{C_1,\dots,C_K\}$, and prior $p(y=C_k;\pi)=\pi_k$. The data likelihood under the class prior is
+\[
+p(D;\pi)=\prod_{i=1}^n p(y_i;\pi)
+=\prod_{i=1}^n \prod_{k=1}^K \pi_k^{\,y_{ik}},
+\]
+where $y_{ik}\in\{0,1\}$ is the $k$th component of the one-hot vector $y_i$.
+Thus the log-likelihood is
+\[
+\ln p(D;\pi)=\sum_{i=1}^n\sum_{k=1}^K y_{ik}\ln \pi_k.
+\]
+\subsection{Question 2.}
+
+Maximize $\sum_{i,k} y_{ik}\ln\pi_k$ subject to $\sum_{k=1}^K \pi_k-1=0$.
+Let
+\[
+\mathcal{L}(\pi,\lambda)=\sum_{i=1}^n\sum_{k=1}^K y_{ik}\ln \pi_k+\lambda\Big(\sum_{k=1}^K \pi_k-1\Big).
+\]
+Setting derivatives to zero:
+\[
+\frac{\partial \mathcal{L}}{\partial \pi_k}=\frac{\sum_{i=1}^n y_{ik}}{\pi_k}+\lambda=0
+\quad\Longrightarrow\quad
+\pi_k=-\frac{\sum_{i=1}^n y_{ik}}{\lambda}.
+\]
+Using the constraint $\sum_k \pi_k=1$ gives
+\[
+1=\sum_{k=1}^K \pi_k=-\frac{1}{\lambda}\sum_{k=1}^K\sum_{i=1}^n y_{ik}
+=-\frac{1}{\lambda}\sum_{i=1}^n \underbrace{\sum_{k=1}^K y_{ik}}_{=1}
+=-\frac{n}{\lambda}
+\quad\Longrightarrow\quad \lambda=-n.
+\]
+Hence the MLE is
+\[
+\hat\pi_k=\frac{1}{n}\sum_{i=1}^n y_{ik}.
+\]
+This is intuitive because $\hat\pi_k$ is exactly the empirical fraction of training points in class $k$.
+
+\subsection{Question 3.}
+
+For $p(x\mid y=C_k)=\mathcal{N}(x\mid \mu_k,\Sigma)$ with shared $\Sigma$, the (complete-data) log-likelihood is
+\[
+\ell(\{\mu_k\},\Sigma)=\sum_{i=1}^n\sum_{k=1}^K y_{ik}\left[-\frac12\log|\Sigma|-\frac12(x_i-\mu_k)^\top\Sigma^{-1}(x_i-\mu_k)\right]+ \text{const}.
+\]
+Using $\frac{\partial}{\partial \mu_k}\big[(x_i-\mu_k)^\top\Sigma^{-1}(x_i-\mu_k)\big]
+=-2\Sigma^{-1}(x_i-\mu_k)$, we get
+\[
+\nabla_{\mu_k}\,\ell
+=\sum_{i=1}^n y_{ik}\,\Sigma^{-1}(x_i-\mu_k)
+=\Sigma^{-1}\!\left(\sum_{i=1}^n y_{ik}x_i-\Big(\sum_{i=1}^n y_{ik}\Big)\mu_k\right).
+\]
+Equivalently, letting $X=[x_1^\top;\dots;x_n^\top]\in\mathbb{R}^{n\times D}$ and $y_k=(y_{1k},\dots,y_{nk})^\top\in\mathbb{R}^n$,
+\[
+\nabla_{\mu_k}\,\ell=\Sigma^{-1}\!\left(X^\top y_k-(\mathbf{1}^\top y_k)\mu_k\right).
+\]
+\subsection{Question 4.}
+
+Set the gradient to zero:
+\[
+0=\sum_{i=1}^n y_{ik}\,\Sigma^{-1}(x_i-\mu_k)
+\;\Longrightarrow\;
+\sum_{i=1}^n y_{ik}x_i=\Big(\sum_{i=1}^n y_{ik}\Big)\mu_k
+\;\Longrightarrow\;
+\hat\mu_k=\frac{\sum_{i=1}^n y_{ik}x_i}{\sum_{i=1}^n y_{ik}}.
+\]
+This is the sample mean of the points assigned to class $k$.
+
+\subsection{Question 5.}
+
+Using the matrix cookbook identities and $\mathrm{d}\,(x^\top\Sigma^{-1}x)= -\mathrm{tr}(\Sigma^{-1}xx^\top\Sigma^{-1}\mathrm{d}\Sigma)$, we obtain
+\[
+\nabla_{\Sigma}\,\ell
+=-\frac12\sum_{i=1}^n\sum_{k=1}^K y_{ik}\,\Sigma^{-1}
++\frac12\sum_{i=1}^n\sum_{k=1}^K y_{ik}\,\Sigma^{-1}(x_i-\mu_k)(x_i-\mu_k)^\top\Sigma^{-1}.
+\]
+Since $\sum_{k=1}^K y_{ik}=1$ for one-hot labels, this simplifies to
+\[
+\nabla_{\Sigma}\,\ell
+=-\frac{n}{2}\Sigma^{-1}
++\frac12\,\Sigma^{-1}\!\left(\sum_{i=1}^n\sum_{k=1}^K y_{ik}(x_i-\mu_k)(x_i-\mu_k)^\top\right)\Sigma^{-1}.
+\]
+\subsection{Question 6.}
+
+Set $\nabla_{\Sigma}\ell=0$ and multiply on the left and right by $\Sigma$:
+\[
+-nI+\left(\sum_{i=1}^n\sum_{k=1}^K y_{ik}(x_i-\mu_k)(x_i-\mu_k)^\top\right)\Sigma^{-1}=0
+\;\Longrightarrow\;
+\hat\Sigma=\frac{1}{n}\sum_{i=1}^n\sum_{k=1}^K y_{ik}(x_i-\hat\mu_k)(x_i-\hat\mu_k)^\top.
+\]
+
+
 \end{solution}
 
 \newpage
@@ -337,7 +570,44 @@ After implementing the above classifiers, complete the following exercises:
 \newpage
 
 \begin{solution}
-	Your solution here.
+
+\section{Problem 3.}
+
+\subsection{Question 1.}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/p3_gaussian_shared.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/p3_gaussian_separate.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/p3_softmax_vanilla.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/p3_softmax_basis.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/p3_knn_k1.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/p3_knn_k5.png}
+\end{figure}
+The shared-covariance Gaussian classifier produces approximately linear decision boundaries separating the three classes, reflecting the affine discriminant functions induced by a common covariance matrix. The separate-covariance Gaussian classifier produces curved boundaries, visible in the bending region around the guarantor class, due to class-specific covariance matrices introducing second-order terms. The vanilla softmax classifier also yields linear decision boundaries, while the additional feature map significantly alters the geometry, producing a large horizontal band that classifies most middle credit-score values as requiring a guarantor. The kNN classifiers generate highly data-dependent boundaries: with $k=1$ the regions are more jagged and closely follow individual data points, whereas $k=5$ smooths the boundary and produces more stable regions. These differences arise from structural assumptions: generative Gaussian models impose distributional assumptions, softmax regression enforces linear separability in feature space, and kNN makes no parametric assumption and bases classification purely on local neighborhood structure.
+
+\subsection{Question 2.}
+
+All classifiers assign the applicant $(0.32, 350)$ to the Automatically Rejected class, as this point lies in the low credit-score region classified as rejection in all decision boundary plots. For models (c) and (d), the softmax classifiers compute posterior probabilities via the softmax function and select the class with highest probability; here, the rejection class has the largest score. The Gaussian classifiers compare class-conditional likelihoods under their covariance assumptions, both favoring rejection at this location. The kNN classifiers assign the label based on the majority of nearby training points, which are rejection examples. When predicting far from the training data, we must be cautious about extrapolation, as models may produce confident but unreliable predictions outside the data-supported region.
+
+\subsection{Question 3.}
+
+Using this classifier for loan decisions raises concerns about fairness and bias, since credit score and debt-to-income ratio may reflect structural inequalities rather than true repayment ability. A person with a temporarily low credit score due to medical debt or lack of credit history might still be financially stable and deserving of a loan. Relying only on these two variables ignores other relevant factors such as employment stability, savings, collateral, or recent improvements in financial behavior. Moreover, training a classifier on past decisions can perpetuate historical biases if earlier lending practices were discriminatory. Thus, without careful auditing and inclusion of broader contextual information, such models risk reinforcing inequities rather than making purely risk-based decisions.
+
 \end{solution}
 
 \newpage
@@ -402,7 +672,159 @@ Try not to touch anything that is not in between ``\textit{sol}" and ``\textit{l
 \pagebreak
 
 \begin{solution}
-	Your solution here.
+
+\section{Problem 4.}
+
+\subsection{Question 1.}
+
+Let \(r(\mathbf{w}) = X\mathbf{w}-\mathbf{y}\). Then
+\[
+\mathcal{L}(\mathbf{w})=\frac12\|r(\mathbf{w})\|_2^2=\frac12 r(\mathbf{w})^\top r(\mathbf{w}).
+\]
+Using \(\nabla_{\mathbf{w}}\big(\tfrac12\|X\mathbf{w}-\mathbf{y}\|_2^2\big)=X^\top(X\mathbf{w}-\mathbf{y})\), we obtain
+\[
+\nabla_{\mathbf{w}}\mathcal{L}(\mathbf{w}) = X^\top(X\mathbf{w}-\mathbf{y}) = X^\top X\,\mathbf{w} - X^\top \mathbf{y}.
+\]
+\subsection{Question 2.}
+
+With \(\nabla_{\mathbf{w}}\mathcal{L}(\mathbf{w}) = X^\top(X\mathbf{w}-\mathbf{y})\), the full-batch gradient descent update with step size \(\eta>0\) is
+\[
+\mathbf{w}^{(t+1)}=\mathbf{w}^{(t)}-\eta\,X^\top\!\big(X\mathbf{w}^{(t)}-\mathbf{y}\big)
+=\big(I-\eta X^\top X\big)\mathbf{w}^{(t)}+\eta X^\top \mathbf{y}.
+\]
+
+\subsection{Question 3.}
+
+For
+\[
+\mathcal{L}_{\text{ridge}}(\mathbf{w})=\frac12\|X\mathbf{w}-\mathbf{y}\|_2^2+\frac{\lambda}{2}\|\mathbf{w}\|_2^2,
+\]
+we have
+\[
+\nabla_{\mathbf{w}}\left(\frac12\|X\mathbf{w}-\mathbf{y}\|_2^2\right)=X^\top(X\mathbf{w}-\mathbf{y}),
+\qquad
+\nabla_{\mathbf{w}}\left(\frac{\lambda}{2}\|\mathbf{w}\|_2^2\right)=\lambda \mathbf{w}.
+\]
+Therefore,
+\[
+\nabla_{\mathbf{w}}\mathcal{L}_{\text{ridge}}(\mathbf{w})
+= X^\top(X\mathbf{w}-\mathbf{y})+\lambda \mathbf{w}
+= (X^\top X+\lambda I)\mathbf{w}-X^\top\mathbf{y}.
+\]
+Compared to the unregularized gradient \(X^\top(X\mathbf{w}-\mathbf{y})\), ridge adds the shrinkage term \(+\lambda \mathbf{w}\).
+
+\subsection{Question 4.}
+
+Using 
+\[
+\nabla_{\mathbf{w}}\mathcal{L}_{\text{ridge}}(\mathbf{w})
+= X^\top(X\mathbf{w}-\mathbf{y})+\lambda \mathbf{w},
+\]
+the full-batch gradient descent update becomes
+\[
+\mathbf{w}^{(t+1)}
+= \mathbf{w}^{(t)} - \eta \left[X^\top\!\big(X\mathbf{w}^{(t)}-\mathbf{y}\big) + \lambda \mathbf{w}^{(t)}\right].
+\]
+Rewriting,
+\[
+\mathbf{w}^{(t+1)}
+= (1-\eta\lambda)\mathbf{w}^{(t)} 
+- \eta X^\top\!\big(X\mathbf{w}^{(t)}-\mathbf{y}\big).
+\]
+This form makes the shrinkage explicit: before the data-driven update is applied, the parameter vector is multiplied by $(1-\eta\lambda)$, which contracts the weights toward zero at each iteration. Thus, ridge regularization continuously shrinks the magnitude of the coefficients, reducing variance and improving stability in ill-conditioned settings.
+
+\subsection{Question 5.}
+
+\textbf{Updated Code:}
+\begin{lstlisting}[language=Python]
+# -----------------------------
+# Losses + gradients
+# -----------------------------
+def loss_linear(X, y, w):
+    """Linear regression loss: L(w) = (1/2n) * sum_i (x_i^T w - y_i)^2"""
+    n = X.shape[0]
+    r = X @ w - y
+    return 0.5 * np.mean(r ** 2)
+
+def grad_linear(X, y, w):
+    """Gradient of the linear regression loss w.r.t. w."""
+    n = X.shape[0]
+    r = X @ w - y
+    return (X.T @ r) / n
+
+def mse(X, y, w):
+    """Mean squared error (no 1/2 factor). Used for plotting."""
+    r = X @ w - y
+    return np.mean(r ** 2)
+
+def loss_ridge(X, y, w, lam):
+    """Ridge loss: linear loss + (lambda/2) * ||w||^2"""
+    return loss_linear(X, y, w) + 0.5 * lam * np.sum(w ** 2)
+
+def grad_ridge(X, y, w, lam):
+    """Gradient of ridge loss: grad_linear + lambda * w"""
+    return grad_linear(X, y, w) + lam * w
+
+# -----------------------------
+# Optimizers (stateful)
+# -----------------------------
+@dataclass
+class MomState:
+    v: np.ndarray
+
+def sgd_step(w, g, lr, state=None):
+    """SGD update: w_{t+1} = w_t - lr * g_t"""
+    w_new = w - lr * g
+    return w_new, None
+
+def mom_step(w, g, lr, beta, state: MomState | None):
+    """
+    Momentum:
+        v_{t+1} = beta * v_t + g_t
+        w_{t+1} = w_t - lr * v_{t+1}
+    """
+    if state is None:
+        state = MomState(v=np.zeros_like(w))
+    v_new = beta * state.v + g
+    w_new = w - lr * v_new
+    return w_new, MomState(v=v_new)
+
+@dataclass
+class AdamState:
+    m: np.ndarray
+    v: np.ndarray
+    t: int
+
+def adam_step(w, g, lr, beta1, beta2, eps, state: AdamState | None):
+    """
+    Adam:
+        m_t = beta1 m_{t-1} + (1-beta1) g_t
+        v_t = beta2 v_{t-1} + (1-beta2) g_t^2
+        w_{t+1} = w_t - lr * m_hat / (sqrt(v_hat) + eps)
+    """
+    if state is None:
+        state = AdamState(m=np.zeros_like(w), v=np.zeros_like(w), t=0)
+
+    t = state.t + 1
+    m = beta1 * state.m + (1 - beta1) * g
+    v = beta2 * state.v + (1 - beta2) * (g ** 2)
+
+    m_hat = m / (1 - beta1 ** t)
+    v_hat = v / (1 - beta2 ** t)
+
+    w_new = w - lr * m_hat / (np.sqrt(v_hat) + eps)
+    return w_new, AdamState(m=m, v=v, t=t)
+\end{lstlisting}
+
+\subsection{Question 6.}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{hw2/img_output/output.png}
+\end{figure}
+In the unregularized case (top row), the contours form a long flat valley due to the rank-deficient matrix $X$, so there is a subspace of minimizers along the dashed red line. SGD moves slowly and zig-zags along the narrow direction, while Momentum and Adam progress faster along the valley but may converge to different points on the same flat minimum set. In the ridge-regularized case (bottom row), the contours become elliptical with a unique minimum, eliminating the flat direction. All three algorithms now converge to the same point, and the trajectories are more stable. Thus, ridge regularization improves conditioning, speeds up convergence, and changes the geometry from a flat valley to a well-defined convex bowl.
+
+
+
 \end{solution}
 
 
@@ -411,8 +833,13 @@ Try not to touch anything that is not in between ``\textit{sol}" and ``\textit{l
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \pagebreak
-\textbf{Name}:
+\textbf{Name}: Johnny Zhao
 
 \textbf{Collaborators and Resources}: 
+\begin{itemize}
+    \item  AI Assistance: ChatGPT 5.2 (used only for high-level conceptual clarification and review of mathematical ideas).
+    \item Course Materials: COMPSCI 1810 Machine Learning lecture notes and slides, BST 220 Applied Regression Analysis, BST 221 Applied Data Structures and Algorithms lecture notes, BST 236 Computing I textbook.
+\end{itemize}
+
 
 \end{document}
